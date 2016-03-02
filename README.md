@@ -10,11 +10,11 @@ Installation
 
 Install from the master branch:
 
-    $ pip install -e https://github.com/ionata/senset-data-portal.git#egg=senset-data-portal
+    $ pip install -e git+https://github.com/ionata/senset-data-portal.git#egg=senset-data-portal
 
 Or install from a tag:
 
-    $ pip install -e https://github.com/ionata/senset-data-portal.git@v2.0.2#egg=senset-data-portal
+    $ pip install -e git+https://github.com/ionata/senset-data-portal.git@v2.0.4#egg=senset-data-portal
 
 Documentation
 ------------
