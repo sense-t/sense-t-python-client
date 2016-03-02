@@ -14,7 +14,7 @@ Install from the master branch:
 
 Or install from a tag:
 
-    $ pip install -e https://github.com/ionata/senset-data-portal.git@v2.0.2#egg=senset-data-portal
+    $ pip install -e https://github.com/ionata/senset-data-portal.git@v2.0.3#egg=senset-data-portal
 
 Documentation
 ------------
