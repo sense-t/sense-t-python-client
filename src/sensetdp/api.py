@@ -94,7 +94,7 @@ class API(object):
             path='/users/{userid}',
             payload_type='user',
             allowed_param=['userid'],
-            require_auth=True
+            require_auth=True,
         )
 
     @property
@@ -104,12 +104,16 @@ class API(object):
         return bind_api(
             api=self,
             path='/platforms',
-            payload_type='platform', payload_list=True,
-            require_auth=True
+            payload_type='platform',
+            payload_list=True,
+            require_auth=True,
         )
 
     @property
     def create_platform(self):
+        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/put_platforms_id
+            :allowed_param: 'id', 'name', 'organisationid', 'groupids', 'streamids', 'deployments'
+        """
         return bind_api(
             api=self,
             path='/platforms/{id}',
@@ -124,13 +128,13 @@ class API(object):
                 'streamids',
                 'deployments',
             ],
-            require_auth=True
+            require_auth=True,
         )
 
     @property
     def update_platform(self):
         """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/put_platforms_id
-            :allowed_param: 'id','body'
+            :allowed_param: 'id', 'name', 'organisationid', 'groupids', 'streamids', 'deployments',
         """
         return bind_api(
             api=self,
@@ -146,13 +150,13 @@ class API(object):
                 'streamids',
                 'deployments',
             ],
-            require_auth=True
+            require_auth=True,
         )
 
     @property
     def destroy_platform(self):
         """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/delete_platforms_id
-            :allowed_param: 'id'
+            :allowed_param: 'id', 'cascade'
         """
         return bind_api(
             api=self,
@@ -161,9 +165,9 @@ class API(object):
             payload_type='platform',
             allowed_param=[
                 'id',
-                'cascade'
+                'cascade',
             ],
-            require_auth=True
+            require_auth=True,
         )
 
     @property
@@ -174,19 +178,62 @@ class API(object):
         return bind_api(
             api=self,
             path='/streams/{id}',
+            method='GET',
             payload_type='stream',
             allowed_param=['id'],
-            require_auth=True
+            require_auth=True,
         )
 
     @property
     def create_stream(self):
-        return self.update_stream
+        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/put_streams_id
+            :allowed_param: 'id', 'resulttype', 'organisationid', 'groupids', 'procedureid', 'samplePeriod',
+            'reportingPeriod', 'streamMetadata',
+        """
+        return bind_api(
+            api=self,
+            path='/streams/{id}',
+            method='PUT',
+            payload_type='stream',
+            action='create',
+            allowed_param=[
+                'id',
+                'resulttype',
+                'organisationid',
+                'groupids',
+                'procedureid',
+                'samplePeriod',
+                'reportingPeriod',
+                'streamMetadata',
+            ],
+            require_auth=True,
+        )
 
     @property
     def update_stream(self):
-        pass
+        return self.create_stream
 
     @property
     def destroy_stream(self):
         pass
+
+    @property
+    def create_observations(self):
+        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/post_observations
+            :allowed_param: 'streamid', 'results'
+        """
+        return bind_api(
+            api=self,
+            path='/observations',
+            method='POST',
+            payload_type='json',
+            action='create',
+            allowed_param=[
+                'streamid',
+                'results',
+            ],
+            query_only_param=[
+                'streamid',
+            ],
+            require_auth=True,
+        )

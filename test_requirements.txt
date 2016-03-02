@@ -1,4 +1,4 @@
-tox>=1.7.2
-vcrpy==1.1.2
+tox==2.3.1
+vcrpy==1.7.4
 mock==1.0.1
 unittest2   # Comment this line out if using Python 3.

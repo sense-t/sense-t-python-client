@@ -20,14 +20,18 @@ else:
 install_reqs = parse_requirements('requirements.txt', session=uuid.uuid1())
 reqs = [str(req.req) for req in install_reqs]
 
+AUTHOR = "Ionata Digital"
+AUTHOR_EMAIL = "developers@ionata.com.au"
 
 setup(name="sensetdp",
       version=version,
       description="Sense-T Data Portal v2 client",
       license="MIT",
-      author="Ionata Digital",
-      author_email="developers@ionata.com.au",
-      url="http://github.com/ionata/senset-data-portal",
+      author=AUTHOR,
+      author_email=AUTHOR_EMAIL,
+      maintainer=AUTHOR,
+      maintainer_email=AUTHOR_EMAIL,
+      url="https://github.com/ionata/senset-data-portal",
       packages=find_packages(exclude=['tests']),
       package_dir={'sensetdp': 'src/sensetdp'},
       install_requires=reqs,

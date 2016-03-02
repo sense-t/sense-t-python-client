@@ -1,3 +1,4 @@
-requests>=2.4.3
+requests==2.9.1
+requests[security]
 six>=1.7.3
 enum34==1.1.2

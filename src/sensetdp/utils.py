@@ -1,5 +1,6 @@
 """
 MIT License
+Copyright (c) 2016 Ionata Digital
 Copyright (c) 2010-2014 Joshua Roesslein
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,6 +24,8 @@ THE SOFTWARE.
 
 from __future__ import print_function
 
+import json
+import enum
 from datetime import datetime
 
 import six
@@ -64,7 +67,7 @@ def import_simplejson():
                 # Google App Engine
                 from django.utils import simplejson as json
             except ImportError:
-                raise ImportError("Can't load a json library")
+                raise ImportError("Can't load a json library.")
 
     return json
 
@@ -72,3 +75,10 @@ def import_simplejson():
 def list_to_csv(item_list):
     if item_list:
         return ','.join([str(i) for i in item_list])
+
+
+class SenseTEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, enum.Enum):
+            return obj.value
+        return json.JSONEncoder.default(self, obj)

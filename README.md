@@ -8,7 +8,13 @@ Project home page: https://github.com/ionata/senset-data-portal
 Installation
 ------------
 
-    $ pip install -e https://github.com/ionata/senset-data-portal@v2.0.1#egg=senset-data-portal
+Install from the master branch:
+
+    $ pip install -e https://github.com/ionata/senset-data-portal.git#egg=senset-data-portal
+
+Or install from a tag:
+
+    $ pip install -e https://github.com/ionata/senset-data-portal.git@v2.0.2#egg=senset-data-portal
 
 Documentation
 ------------
@@ -26,7 +32,7 @@ Development
 
 Clone the project from github:
 
-    $ git clone https://github.com/ionata/senset-data-portal
+    $ git clone https://github.com/ionata/senset-data-portal.git
     $ cd senset-data-portal
 
 Create a python virtual environment, then install the requirements as below:

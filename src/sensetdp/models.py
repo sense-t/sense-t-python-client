@@ -26,9 +26,12 @@ from __future__ import unicode_literals, absolute_import, print_function
 
 import json
 
+import datetime
 import enum
 
 from sensetdp.error import SenseTError
+from sensetdp.utils import SenseTEncoder
+from sensetdp.vocabulary import find_unit_of_measurement, find_observed_property
 
 
 class StreamResultType(enum.Enum):
@@ -42,19 +45,19 @@ class StreamMetaDataType(enum.Enum):
 
 
 class InterpolationType(enum.Enum):
-    Continuous = 'http://www.opengis.net/def/waterml/2.0/interpolationType/Continuous'
-    Discontinuous = 'http://www.opengis.net/def/waterml/2.0/interpolationType/Discontinuous'
-    InstantTotal = 'http://www.opengis.net/def/waterml/2.0/interpolationType/InstantTotal'
-    AveragePrec = 'http://www.opengis.net/def/waterml/2.0/interpolationType/AveragePrec'
-    MaxPrec = 'http://www.opengis.net/def/waterml/2.0/interpolationType/MaxPrec'
-    MinPrec = 'http://www.opengis.net/def/waterml/2.0/interpolationType/MinPrec'
-    TotalPrec = 'http://www.opengis.net/def/waterml/2.0/interpolationType/TotalPrec'
-    ConstPrec = 'http://www.opengis.net/def/waterml/2.0/interpolationType/ConstPrec'
-    AverageSucc = 'http://www.opengis.net/def/waterml/2.0/interpolationType/AverageSucc'
-    TotalSucc = 'http://www.opengis.net/def/waterml/2.0/interpolationType/TotalSucc'
-    MinSucc = 'http://www.opengis.net/def/waterml/2.0/interpolationType/MinSucc'
-    MaxSucc = 'http://www.opengis.net/def/waterml/2.0/interpolationType/MaxSucc'
-    ConstSucc = 'http://www.opengis.net/def/waterml/2.0/interpolationType/ConstSucc'
+    continuous = 'http://www.opengis.net/def/waterml/2.0/interpolationType/Continuous'
+    discontinuous = 'http://www.opengis.net/def/waterml/2.0/interpolationType/Discontinuous'
+    instant_total = 'http://www.opengis.net/def/waterml/2.0/interpolationType/InstantTotal'
+    average_preceding = 'http://www.opengis.net/def/waterml/2.0/interpolationType/AveragePrec'
+    max_preceding = 'http://www.opengis.net/def/waterml/2.0/interpolationType/MaxPrec'
+    min_preceding = 'http://www.opengis.net/def/waterml/2.0/interpolationType/MinPrec'
+    total_preceding = 'http://www.opengis.net/def/waterml/2.0/interpolationType/TotalPrec'
+    const_preceding = 'http://www.opengis.net/def/waterml/2.0/interpolationType/ConstPrec'
+    average_succeeding = 'http://www.opengis.net/def/waterml/2.0/interpolationType/AverageSucc'
+    total_succeeding = 'http://www.opengis.net/def/waterml/2.0/interpolationType/TotalSucc'
+    min_succeeding = 'http://www.opengis.net/def/waterml/2.0/interpolationType/MinSucc'
+    max_succeeding = 'http://www.opengis.net/def/waterml/2.0/interpolationType/MaxSucc'
+    const_succeeding = 'http://www.opengis.net/def/waterml/2.0/interpolationType/ConstSucc'
 
 
 class ResultSet(list):
@@ -86,8 +89,14 @@ class ResultSet(list):
 
 class Model(object):
 
+    misspellings = {
+        # key: wrong, value: correct
+        'cummulative': 'cumulative',
+    }
+
     def __init__(self, api=None):
         self._api = api
+        self._fix_spellings = False
 
     def __getstate__(self, action=None):
         # pickle
@@ -98,6 +107,12 @@ class Model(object):
         except KeyError:
             pass
 
+        if self._fix_spellings:
+            for wrong, correct in self.misspellings.items():
+                if correct in pickle.keys():
+                    pickle[wrong] = pickle.get(correct)
+                    del pickle[correct]
+
         # allow model implementations to mangle state on different api actions
         action_fn = getattr(self, "__getstate_{0}__".format(action), None)
         if action and callable(action_fn):
@@ -105,8 +120,12 @@ class Model(object):
 
         return pickle
 
+    def to_state(self, action=None):
+        state = self.__getstate__(action)
+        return state
+
     def to_json(self, action=None):
-        return json.dumps(self.__getstate__(action), sort_keys=True)  # be explict with key order so unittest work.
+        return json.dumps(self.to_state(action), sort_keys=True, cls=SenseTEncoder)  # be explict with key order so unittest work.
 
     @classmethod
     def parse(cls, api, json):
@@ -125,9 +144,22 @@ class Model(object):
                 results.append(cls.parse(api, obj))
         return results
 
+    @classmethod
+    def fix_parse_misspellings(cls, json):
+        for wrong, correct in cls.misspellings.items():
+            if wrong in json.keys():
+                json[correct] = json.get(wrong)
+                del json[wrong]
+
     def __repr__(self):
         state = ['%s=%s' % (k, repr(v)) for (k, v) in vars(self).items()]
         return '%s(%s)' % (self.__class__.__name__, ', '.join(state))
+
+
+class JSONModel(Model):
+    @classmethod
+    def parse(cls, api, json):
+        return json
 
 
 class Platform(Model):
@@ -152,7 +184,7 @@ class Platform(Model):
         :return: API weirdly requires a single organisationid on creation/update but returns a list
         """
         if not self.organisations:
-            raise SenseTError("Platform creation requires an organisationid")
+            raise SenseTError("Platform creation requires an organisationid.")
         pickled["organisationid"] = self.organisations[0].id
         return pickled
 
@@ -247,7 +279,7 @@ class Organisation(Model):
         return results
 
     def permissions(self):
-        raise NotImplementedError("Not implemented")
+        raise NotImplementedError("Not implemented.")
 
 
 class Vocabulary(Model):
@@ -257,18 +289,18 @@ class Vocabulary(Model):
 class StreamMetaData(Model):
     def __init__(self, api=None):
         super(StreamMetaData, self).__init__(api=api)
-        self._api = api
+        self._fix_spellings = True
         self._type = None
         self._interpolation_type = None
 
         # scalar only attrs
-        self.observedProperty = None
-        self.cummulative = None
+        self._observed_property = None
+        self.cumulative = None
 
         # geo only attrs
-        self.unitOfMeasure = None
+        self._unit_of_measure = None
 
-        # cumulative only attrs
+        # cumulative stream only attrs
         self.accumulationInterval = None
         self.accumulationAnchor = None
 
@@ -277,7 +309,44 @@ class StreamMetaData(Model):
 
     def __getstate__(self, action=None):
         pickled = super(StreamMetaData, self).__getstate__(action)
-        pickled["interpolationType"] = self.interpolation_type.value
+
+        if self.interpolation_type:
+            pickled["interpolationType"] = self.interpolation_type.value
+
+        if self.observed_property:
+            pickled["observedProperty"] = self.observed_property.value
+
+        if self.unit_of_measure:
+            pickled["unitOfMeasure"] = self.unit_of_measure.value
+
+        # clean up non scalar StreamMetaData keys
+        if self._type != StreamMetaDataType.scalar:
+            for key in ['observedProperty', 'cumulative']:
+                try:
+                    del pickled[key]
+                except KeyError:
+                    pass
+
+        # clean up non geo StreamMetaData keys
+        if self._type != StreamMetaDataType.scalar:
+            for key in ['unitOfMeasure']:
+                try:
+                    del pickled[key]
+                except KeyError:
+                    pass
+
+        # clean up non cumulative stream StreamMetaData keys
+        if not self.cumulative:
+            for key in ['accumulationInterval', 'accumulationAnchor']:
+                try:
+                    del pickled[key]
+                except KeyError:
+                    pass
+            if self.cumulative is None:  # different then false in PAI
+                del pickled['cummulative']
+
+        if self.timezone is None:
+            del pickled["timezone"]
 
         if action != "create":
             # purge the type, it is never returned on get request
@@ -294,7 +363,7 @@ class StreamMetaData(Model):
         :return:
         """
         if not self.type:
-            raise SenseTError("Stream creation requires an type")
+            raise SenseTError("Stream creation requires an type.")
         if self.type is not None:
             pickled["type"] = self._type.value
         return pickled
@@ -302,6 +371,8 @@ class StreamMetaData(Model):
     @classmethod
     def parse(cls, api, json):
         stream_meta_data = cls(api)
+        cls.fix_parse_misspellings(json)
+
         setattr(stream_meta_data, '_json', json)
         for k, v in json.items():
             if k == "_embedded":
@@ -309,6 +380,12 @@ class StreamMetaData(Model):
                     if ek == "interpolationType":
                         ev = ev[0].get('_links', {}).get('self', {}).get('href', )
                         setattr(stream_meta_data, "interpolation_type", InterpolationType(ev))
+                    if ek == "observedProperty":
+                        ev = ev[0].get('_links', {}).get('self', {}).get('href', )
+                        setattr(stream_meta_data, "observed_property", find_observed_property(ev))
+                    if ek == "unitOfMeasure":
+                        ev = ev[0].get('_links', {}).get('self', {}).get('href', )
+                        setattr(stream_meta_data, "unit_of_measure", find_unit_of_measurement(ev))
             else:
                 setattr(stream_meta_data, k, v)
         return stream_meta_data
@@ -329,11 +406,27 @@ class StreamMetaData(Model):
     def interpolation_type(self, value):
         self._interpolation_type = value
 
+    @property
+    def observed_property(self):
+        return self._observed_property
+
+    @observed_property.setter
+    def observed_property(self, value):
+        self._observed_property = value
+
+    @property
+    def unit_of_measure(self):
+        return self._unit_of_measure
+
+    @unit_of_measure.setter
+    def unit_of_measure(self, value):
+        self._unit_of_measure = value
+
 
 class Stream(Model):
     def __init__(self, api=None):
         super(Stream, self).__init__(api=api)
-        self._type = None
+        self._result_type = None
         self._organisations = list()
         self._groups = list()
         self._metadata = None
@@ -341,9 +434,15 @@ class Stream(Model):
     def __getstate__(self, action=None):
         pickled = super(Stream, self).__getstate__(action)
 
-        pickled["groupids"] = [g.id for g in self.groups]
-        pickled["streamMetadata"] = self.metadata.__getstate__(action)
+        pickled["resulttype"] = self._result_type.value if self._result_type is not None else None
         pickled["organisationid"] = self.organisations[0].id
+
+        if self.groups:
+            pickled["groupids"] = [g.id for g in self.groups]
+
+        if self.metadata:
+            pickled["streamMetadata"] = self.metadata.__getstate__(action)
+
         return pickled
 
     @classmethod
@@ -352,7 +451,7 @@ class Stream(Model):
         setattr(stream, '_json', json)
         for k, v in json.items():
             if k == "resulttype":
-                setattr(stream, k, StreamResultType(v))
+                setattr(stream, "result_type", StreamResultType(v))
             if k == "_embedded":
                 for ek, ev in v.items():
                     if ek == "organisation":
@@ -377,6 +476,14 @@ class Stream(Model):
         for obj in item_list:
             results.append(cls.parse(api, obj))
         return results
+
+    @property
+    def result_type(self):
+        return self._result_type
+
+    @result_type.setter
+    def result_type(self, value):
+        self._result_type = value
 
     @property
     def organisations(self):
@@ -422,11 +529,76 @@ class Procedure(Model):
 
 
 class Observation(Model):
-    pass
+    def __init__(self, api=None):
+        super(Observation, self).__init__(api=api)
+        self._results = list()
+        self._stream = None
 
+    def __getstate__(self, action=None):
+        pickled = super(Observation, self).__getstate__(action)
+
+        pickled["results"] = [r.to_state(action) for r in self.results] if self.results else []
+        if self.stream:
+            pickled["streamid"] = self.stream.to_state(action).get("id")
+        return pickled
+
+    @classmethod
+    def parse(cls, api, json):
+        stream = cls(api)
+        setattr(stream, '_json', json)
+        for k, v in json.items():
+            if k == "results":
+                setattr(stream, "results", UnivariateResult.parse_list(api, v))
+            if k == "stream":
+                setattr(stream, "steam", Stream.parse(api, v))
+            else:
+                setattr(stream, k, v)
+        return stream
+
+    @classmethod
+    def parse_list(cls, api, json_list):
+        if isinstance(json_list, list):
+            item_list = json_list
+        else:
+            item_list = json_list['observations']
+
+        results = ResultSet()
+        for obj in item_list:
+            results.append(cls.parse(api, obj))
+        return results
+
+    @property
+    def results(self):
+        return self._results
+
+    @results.setter
+    def results(self, value):
+        self._results = value
+
+    @property
+    def stream(self):
+        return self._stream
+
+    @stream.setter
+    def stream(self, value):
+        self._stream = value
 
 class Aggregation(Model):
     pass
+
+
+class UnivariateResult(JSONModel):
+    def __init__(self, api=None):
+        super(UnivariateResult, self).__init__(api=api)
+        self.t = None
+        self.v = None
+
+    def __getstate__(self, action=None):
+        pickled = super(UnivariateResult, self).__getstate__(action)
+
+        if isinstance(pickled.get('t', None), datetime.datetime):
+            pickled['t'] = pickled.get('t').strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        return pickled
 
 
 class Deployment(Model):
@@ -451,7 +623,7 @@ class Deployment(Model):
         return results
 
     def permissions(self):
-        raise NotImplementedError("Not implemented")
+        raise NotImplementedError("Not implemented.")
 
 
 class Role(Model):
@@ -477,7 +649,7 @@ class Role(Model):
         return results
 
     def permissions(self):
-        raise NotImplementedError("Not implemented")
+        raise NotImplementedError("Not implemented.")
 
 
 class User(Model):
@@ -516,13 +688,6 @@ class User(Model):
 
     def groups(self):
         pass
-
-
-class JSONModel(Model):
-
-    @classmethod
-    def parse(cls, api, json):
-        return json
 
 
 class ModelFactory(object):

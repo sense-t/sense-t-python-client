@@ -1,5 +1,6 @@
 """
 MIT License
+Copyright (c) 2016 Ionata Digital
 Copyright (c) 2009-2014 Joshua Roesslein
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals, absolute_import
 
 from sensetdp.models import ModelFactory
 from sensetdp.utils import import_simplejson
@@ -83,15 +84,12 @@ class JSONParser(Parser):
 
     def parse_error(self, payload):
         error_object = self.json_lib.loads(payload)
+        reason = "An unknown error occurred"
+        api_code = None
 
-        if 'error' in error_object:
-            reason = error_object['error']
-            api_code = error_object.get('code')
-        else:
-            reason = error_object['errors']
-            api_code = [error.get('code') for error in
-                        reason if error.get('code')]
-            api_code = api_code[0] if len(api_code) == 1 else api_code
+        if 'status' in error_object or 'message' in error_object:
+            reason = error_object.get('message', reason)
+            api_code = error_object.get('status', None)
 
         return reason, api_code
 

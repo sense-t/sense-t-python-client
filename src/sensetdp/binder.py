@@ -26,6 +26,8 @@ from __future__ import print_function
 
 import time
 import re
+from collections import OrderedDict
+
 import six
 import requests
 import logging
@@ -55,6 +57,7 @@ def bind_api(**config):
         payload_type = config.get('payload_type', None)
         payload_list = config.get('payload_list', False)
         allowed_param = config.get('allowed_param', [])
+        query_only_param = config.get('query_only_param', [])
         method = config.get('method', 'GET')
         require_auth = config.get('require_auth', False)
         use_cache = config.get('use_cache', True)
@@ -62,6 +65,8 @@ def bind_api(**config):
 
         def __init__(self, args, kwargs):
             api = self.api
+            self.api_root = api.api_root
+
             # If authentication is required and no credentials
             # are provided, throw an error.
             if self.require_auth and not api.auth:
@@ -70,6 +75,7 @@ def bind_api(**config):
             self.post_data = kwargs.pop('post_data', None)
             self.json_data = kwargs.pop('json_data', {})
             self.use_json = kwargs.pop('use_json', True)
+            self.query_params = kwargs.pop('query_params', {})
 
             self.retry_count = kwargs.pop('retry_count',
                                           api.retry_count)
@@ -83,9 +89,9 @@ def bind_api(**config):
                                                         api.wait_on_rate_limit_notify)
             self.parser = kwargs.pop('parser', api.parser)
             self.session.headers = kwargs.pop('headers', {})
-            self.build_parameters(args, kwargs)
 
-            self.api_root = api.api_root
+            self.build_data(args, kwargs)
+            self.build_query_params(kwargs)
 
             # Perform any path variable substitution
             self.build_path()
@@ -103,22 +109,23 @@ def bind_api(**config):
             self._remaining_calls = None
             self._reset_time = None
 
-        def build_parameters(self, args, kwargs):
+        def build_data(self, args, kwargs):
             if len(args) == 1 and isinstance(args[0], Model):
-                kwargs = args[0].__getstate__(self.action)
+                # explode model.to_state() of model instance into kwargs, clear args
+                kwargs.update(args[0].to_state(self.action))
                 args = list()
             else:
                 for k, v in kwargs.items():
                     if isinstance(v, Model):
-                        kwargs[k] = v.__getstate__(self.action)
+                        kwargs[k] = v.to_state(self.action)
 
-            # filter kwargs for allowed_param
+            # filter kwargs for allowed_param and not in query_only_param
             kwargs = dict([(k, v) for k, v in kwargs.items() if k in self.allowed_param])
 
             if self.use_json:
-                self.json_data = dict(**kwargs)
+                self.json_data = dict([(k, v) for k, v in kwargs.items() if k not in self.query_only_param])
 
-            self.session.params = {}
+            self.session.params = OrderedDict()
             for idx, arg in enumerate(args):
                 if arg is None:
                     continue
@@ -132,10 +139,16 @@ def bind_api(**config):
                     continue
                 if k in self.session.params:
                     raise SenseTError('Multiple values for parameter %s supplied!' % k)
-
                 self.session.params[k] = convert_to_utf8_str(arg)
 
-            log.info("PARAMS: %r", self.session.params)
+            log.info("DATA PARAMS: %r", self.session.params)
+
+        def build_query_params(self, kwargs):
+            for param in self.query_only_param:
+                try:
+                    self.query_params[param] = kwargs.get(param)
+                except KeyError:
+                    raise SenseTError("A required API.bind() method query_param was missing from the kwargs.")
 
         def build_path(self):
             for variable in re_path_template.findall(self.path):
@@ -152,6 +165,8 @@ def bind_api(**config):
                     del self.session.params[name]
 
                 self.path = self.path.replace(variable, value)
+
+            log.info("PATH: %r", self.path)
 
         def execute(self):
             self.api.cached_result = False
@@ -211,9 +226,11 @@ def bind_api(**config):
                 # Execute request
                 try:
                     if self.use_json:
+                        self.session.params = OrderedDict()
                         resp = self.session.request(self.method,
                                                     full_url,
                                                     json=self.json_data,
+                                                    params=self.query_params,
                                                     timeout=self.api.timeout,
                                                     auth=auth,
                                                     proxies=self.api.proxy)
@@ -221,6 +238,7 @@ def bind_api(**config):
                         resp = self.session.request(self.method,
                                                     full_url,
                                                     data=self.post_data,
+                                                    params=self.query_params,
                                                     timeout=self.api.timeout,
                                                     auth=auth,
                                                     proxies=self.api.proxy)
@@ -248,9 +266,11 @@ def bind_api(**config):
                 elif self.retry_errors and resp.status_code not in self.retry_errors:
                     break
 
-                # Sleep before retrying request again
-                time.sleep(retry_delay)
                 retries_performed += 1
+
+                # Sleep before retrying request again
+                if retries_performed < self.retry_count + 1:  # Only sleep when not on the last retry
+                    time.sleep(retry_delay)
 
             # If an error was returned, throw an exception
             self.api.last_response = resp
@@ -258,7 +278,7 @@ def bind_api(**config):
                 try:
                     error_msg, api_error_code = \
                         self.parser.parse_error(resp.text)
-                except Exception:
+                except Exception as ex:
                     error_msg = "SenseT error response: status code = %s" % resp.status_code
                     api_error_code = None
 
