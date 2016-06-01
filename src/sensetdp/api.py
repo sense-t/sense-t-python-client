@@ -237,3 +237,31 @@ class API(object):
             ],
             require_auth=True,
         )
+
+    @property
+    def get_observations(self):
+        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/get_observations
+            :allowed_param: 'streamid', 'start', 'end', 'time', 'si', 'ei',
+            'bounds', 'media', 'limit', 'sort'
+        """
+        return bind_api(
+            api=self,
+            path='/observations',
+            method='GET',
+            payload_type='json',
+            allowed_param=[
+            ],
+            query_only_param=[
+                'streamid',
+                'start',
+                'end',
+                'time',
+                'si',
+                'ei',
+                'bounds',
+                'media',
+                'limit',
+                'sort',
+            ],
+            require_auth=True,
+        )
