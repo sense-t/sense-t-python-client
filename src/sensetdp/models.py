@@ -382,10 +382,12 @@ class StreamMetaData(Model):
                         setattr(stream_meta_data, "interpolation_type", InterpolationType(ev))
                     if ek == "observedProperty":
                         ev = ev[0].get('_links', {}).get('self', {}).get('href', )
-                        setattr(stream_meta_data, "observed_property", find_observed_property(ev))
+                        # Remove local vocab checks for now
+                        setattr(stream_meta_data, "observed_property", ev)
                     if ek == "unitOfMeasure":
                         ev = ev[0].get('_links', {}).get('self', {}).get('href', )
-                        setattr(stream_meta_data, "unit_of_measure", find_unit_of_measurement(ev))
+                        # Remove local vocab checks for now
+                        setattr(stream_meta_data, "unit_of_measure", ev)
             else:
                 setattr(stream_meta_data, k, v)
         return stream_meta_data
