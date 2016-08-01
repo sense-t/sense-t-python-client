@@ -1,20 +1,20 @@
-Sense-T Data Portal v2 client
+Sense-T Sensor Data Python client
 ==============================
 
-This project is a python client implementation for the [Sense-T Data Portal v2 API](https://data.sense-t.org.au/api/sensor/v2/api-docs/#/).
+This project is a python client implementation for the [Sense-T Sensor Data API v2](https://data.sense-t.org.au/api/sensor/v2/api-docs/#/).
 
-Project home page: https://github.com/ionata/senset-data-portal
+Project home page: https://github.com/sense-t/sense-t-python-client
 
 Installation
 ------------
 
 Install from the master branch:
 
-    $ pip install -e git+https://github.com/ionata/senset-data-portal.git#egg=senset-data-portal
+    $ pip install -e git+https://github.com/sense-t/sense-t-python-client.git#egg=senset-data-portal
 
 Or install from a tag:
 
-    $ pip install -e git+https://github.com/ionata/senset-data-portal.git@v2.0.4#egg=senset-data-portal
+    $ pip install -e git+https://github.com/sense-t/sense-t-python-client.git@v2.0.4#egg=senset-data-portal
 
 Documentation
 ------------
@@ -32,7 +32,7 @@ Development
 
 Clone the project from github:
 
-    $ git clone https://github.com/ionata/senset-data-portal.git
+    $ git clone https://github.com/sense-t/sense-t-python-client.git
     $ cd senset-data-portal
 
 Create a python virtual environment, then install the requirements as below:
