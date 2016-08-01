@@ -217,7 +217,7 @@ class Platform(Model):
         if isinstance(json_list, list):
             item_list = json_list
         else:
-            item_list = json_list['platforms']
+            item_list = json_list['_embedded']['platforms']
 
         results = ResultSet()
         for obj in item_list:
@@ -472,7 +472,7 @@ class Stream(Model):
         if isinstance(json_list, list):
             item_list = json_list
         else:
-            item_list = json_list['streams']
+            item_list = json_list['_embedded']['streams']
 
         results = ResultSet()
         for obj in item_list:
