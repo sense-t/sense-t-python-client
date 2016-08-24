@@ -1,2 +1,7 @@
 cassettes/
+build/
+dist/
 
+*.pyc
+*.pyo
+*.egg-info
