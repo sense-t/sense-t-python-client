@@ -54,3 +54,26 @@ class HTTPBasicAuth(AuthBase):
 
     def apply_auth(self):
         return self
+
+
+class HTTPKeyAuth(AuthBase):
+	"""
+	Attaches an API key to the given Request object.
+	
+	NOTE: as the corresponding username is unknown, using this auth scheme will
+	break the api.me() method.
+	
+	TODO: figure out if there's a way to support API keys in query parameters
+	instead of headers.
+	"""
+	
+	def __init__(self, key, header='apikey'):
+		self.key = key
+		self.header = header
+	
+	def __call__(self, r):
+		r.headers[self.header] = self.key
+		return r
+	
+	def apply_auth(self):
+        return self
