@@ -47,4 +47,9 @@ setup(name="sensetdp",
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.4',
       ],
+      extras_require = {
+	      'pandas-observation-parser': [
+	          'pandas >= 0.18.1'
+	      ]
+	  },
       zip_safe=True)

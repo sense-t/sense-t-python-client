@@ -140,7 +140,7 @@ class PandasObservationParser(Parser):
             raise SenseTError('PandasObservationParser requires CSV media type (media type "{}" is not supported).'.format(media_type))
         
         # Skip header information.
-        column_headers = frozenset(['timestamp'] + method.query_params['streamid'].split(','))
+        column_headers = frozenset(['timestamp'] + method.query_params['streamid'].split(',')) # NOTE: this WILL break if stream IDs contain commas (need to properly parse as CSV).
         lines = payload.splitlines()
         for i, row in enumerate(lines):
 			if set(row.split(',')) == column_headers:
@@ -159,4 +159,3 @@ class PandasObservationParser(Parser):
             api_code = error_object.get('status', None)
         
         return reason, api_code
-	
