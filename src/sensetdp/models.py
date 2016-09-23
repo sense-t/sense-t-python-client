@@ -124,8 +124,8 @@ class Model(object):
         state = self.__getstate__(action)
         return state
 
-    def to_json(self, action=None):
-        return json.dumps(self.to_state(action), sort_keys=True, cls=SenseTEncoder)  # be explict with key order so unittest work.
+    def to_json(self, action=None, indent=None):
+        return json.dumps(self.to_state(action), sort_keys=True, cls=SenseTEncoder, indent=indent)  # be explict with key order so unittest work.
 
     @classmethod
     def parse(cls, api, json):
@@ -314,10 +314,10 @@ class StreamMetaData(Model):
             pickled["interpolationType"] = self.interpolation_type.value
 
         if self.observed_property:
-            pickled["observedProperty"] = self.observed_property.value
+            pickled["observedProperty"] = self.observed_property
 
         if self.unit_of_measure:
-            pickled["unitOfMeasure"] = self.unit_of_measure.value
+            pickled["unitOfMeasure"] = self.unit_of_measure
 
         # clean up non scalar StreamMetaData keys
         if self._type != StreamMetaDataType.scalar:

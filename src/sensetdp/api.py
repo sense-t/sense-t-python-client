@@ -232,7 +232,19 @@ class API(object):
 
     @property
     def destroy_stream(self):
-        pass
+        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/delete_streams_id
+            :allowed_param: 'id'
+        """
+        return bind_api(
+            api=self,
+            path='/streams/{id}',
+            method='DELETE',
+            payload_type='stream',
+            allowed_param=[
+                'id',
+            ],
+            require_auth=True,
+        )
 
     @property
     def create_observations(self):
