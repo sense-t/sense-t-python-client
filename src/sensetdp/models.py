@@ -568,6 +568,19 @@ class Observation(Model):
         for obj in item_list:
             results.append(cls.parse(api, obj))
         return results
+    
+    @classmethod
+    def from_dataframe(cls, dataframe):
+		result = {}
+		
+		for timestamp, series in dataframe.iterrows():
+			timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+			
+			for series_id, value in series.iteritems():
+				observation = UnivariateResult(t=timestamp, v=value)
+				result.setdefault(series_id, Observation()).results.append(observation)
+		
+		return result
 
     @property
     def results(self):
@@ -590,10 +603,10 @@ class Aggregation(Model):
 
 
 class UnivariateResult(JSONModel):
-    def __init__(self, api=None):
+    def __init__(self, api=None, t=None, v=None):
         super(UnivariateResult, self).__init__(api=api)
-        self.t = None
-        self.v = None
+        self.t = t
+        self.v = v
 
     def __getstate__(self, action=None):
         pickled = super(UnivariateResult, self).__getstate__(action)

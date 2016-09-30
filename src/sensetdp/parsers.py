@@ -143,11 +143,11 @@ class PandasObservationParser(Parser):
         column_headers = frozenset(['timestamp'] + method.query_params['streamid'].split(',')) # NOTE: this WILL break if stream IDs contain commas (need to properly parse as CSV).
         lines = payload.splitlines()
         for i, row in enumerate(lines):
-			if set(row.split(',')) == column_headers:
-				break
-		
+            if set(s.strip() for s in row.split(',')) == column_headers:
+                break
+        
         # Parse CSV payload.
-        return self.pandas.read_csv(StringIO('\n'.join(lines[i:])), parse_dates='timestamp', index_col='timestamp')
+        return self.pandas.read_csv(StringIO('\n'.join(lines[i:])), parse_dates=True, index_col='timestamp')
     
     def parse_error(self, payload):
         error_object = self.json_lib.loads(payload)
