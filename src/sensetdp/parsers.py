@@ -140,14 +140,22 @@ class PandasObservationParser(Parser):
             raise SenseTError('PandasObservationParser requires CSV media type (media type "{}" is not supported).'.format(media_type))
         
         # Skip header information.
-        column_headers = frozenset(['timestamp'] + method.query_params['streamid'].split(',')) # NOTE: this WILL break if stream IDs contain commas (need to properly parse as CSV).
+        stream_ids = method.query_params['streamid'].split(',') # NOTE: this WILL break if stream IDs contain commas (need to properly parse as CSV).
+        column_headers = frozenset(['timestamp'] + stream_ids)
         lines = payload.splitlines()
         for i, row in enumerate(lines):
             if set(s.strip() for s in row.split(',')) == column_headers:
                 break
         
         # Parse CSV payload.
-        return self.pandas.read_csv(StringIO('\n'.join(lines[i:])), parse_dates=True, index_col='timestamp')
+        df = self.pandas.read_csv(StringIO('\n'.join(lines[i:])), parse_dates=True, index_col='timestamp')
+        
+        # SensorCloud returns columns in random (alphabetic?) order - reorder to
+        # match the order the stream IDs were originally given in.
+        if len(stream_ids) > 1:
+            df = df[stream_ids]
+        
+        return df
     
     def parse_error(self, payload):
         error_object = self.json_lib.loads(payload)
