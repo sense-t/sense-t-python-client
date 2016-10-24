@@ -189,8 +189,6 @@ class API(object):
                 'groupids',
                 'organisationid',
                 'locationid',
-                'streamMetadata.observedProperty',
-                'streamMetadata.unitOfMeasure',
             ],
             payload_list=True,
             require_auth=True,
