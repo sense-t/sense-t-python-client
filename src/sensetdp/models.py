@@ -380,14 +380,17 @@ class StreamMetaData(Model):
                     if ek == "interpolationType":
                         ev = ev[0].get('_links', {}).get('self', {}).get('href', )
                         setattr(stream_meta_data, "interpolation_type", InterpolationType(ev))
-                    if ek == "observedProperty":
+                    elif ek == "observedProperty":
                         ev = ev[0].get('_links', {}).get('self', {}).get('href', )
                         # Remove local vocab checks for now
                         setattr(stream_meta_data, "observed_property", ev)
-                    if ek == "unitOfMeasure":
+                    elif ek == "unitOfMeasure":
                         ev = ev[0].get('_links', {}).get('self', {}).get('href', )
                         # Remove local vocab checks for now
                         setattr(stream_meta_data, "unit_of_measure", ev)
+                    else:
+                        setattr(stream_meta_data, ek, ev)
+                        print("parse: %s, %s" % (ek,ev))
             else:
                 setattr(stream_meta_data, k, v)
         return stream_meta_data
@@ -442,6 +445,9 @@ class Stream(Model):
         if self.groups:
             pickled["groupids"] = [g.id for g in self.groups]
 
+        if self.location:
+            pickled["locationid"] = self.location.id
+
         if self.metadata:
             pickled["streamMetadata"] = self.metadata.__getstate__(action)
 
@@ -454,12 +460,14 @@ class Stream(Model):
         for k, v in json.items():
             if k == "resulttype":
                 setattr(stream, "result_type", StreamResultType(v))
-            if k == "_embedded":
+            elif k == "_embedded":
                 for ek, ev in v.items():
                     if ek == "organisation":
                         setattr(stream, "organisations", Organisation.parse_list(api, ev))
                     elif ek == "groups":
                         setattr(stream, "groups", Group.parse_list(api, ev))
+                    elif ek == "location":
+                        setattr(stream, "location", Location.parse(api, ev[0]))
                     elif ek == "metadata":
                         # metadata is also a list ?????
                         setattr(stream, "metadata", StreamMetaData.parse(api, ev[0]))
@@ -504,6 +512,14 @@ class Stream(Model):
         self._groups = value
 
     @property
+    def locationid(self):
+        return self._locationid
+
+    @locationid.setter
+    def locationid(self, value):
+        self._locationid = value
+
+    @property
     def metadata(self):
         return self._metadata
 
@@ -522,9 +538,17 @@ class Group(Model):
         return group
 
 
+# TODO - not all attributes are implemented
 class Location(Model):
-    pass
+    @classmethod
+    def parse(cls, api, json):
+        result = cls(api)
 
+        setattr(result, '_json', json)
+        for k, v in json.items():
+            setattr(result, k, v)
+
+        return result
 
 class Procedure(Model):
     pass
@@ -552,6 +576,7 @@ class Observation(Model):
             if k == "results":
                 setattr(stream, "results", UnivariateResult.parse_list(api, v))
             if k == "stream":
+                #TODO - is this a mistake? Should steam be stream?
                 setattr(stream, "steam", Stream.parse(api, v))
             else:
                 setattr(stream, k, v)
