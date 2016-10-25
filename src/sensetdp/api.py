@@ -302,3 +302,20 @@ class API(object):
             ],
             require_auth=True,
         )
+
+
+    @property
+    def destroy_observations(self):
+        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/delete_observations
+            :allowed_param: 'streamid'
+        """
+        return bind_api(
+            api=self,
+            path='/observations',
+            method='DELETE',
+            payload_type='json',
+            query_only_param=[
+                'streamid',
+            ],
+            require_auth=True,
+        )
