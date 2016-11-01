@@ -445,8 +445,13 @@ class Stream(Model):
         if self.groups:
             pickled["groupids"] = [g.id for g in self.groups]
 
-        if self.location:
-            pickled["locationid"] = self.location.id
+
+        try:
+            if self.location:
+                pickled["locationid"] = self.location.id
+        except AttributeError:
+            # excetion will be thrown if location is not specified and current object does not have a location
+            pass
 
         if self.metadata:
             pickled["streamMetadata"] = self.metadata.__getstate__(action)
