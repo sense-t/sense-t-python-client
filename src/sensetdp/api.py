@@ -212,7 +212,7 @@ class API(object):
     def create_stream(self):
         """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/put_streams_id
             :allowed_param: 'id', 'resulttype', 'organisationid', 'groupids', 'procedureid', 'samplePeriod',
-            'reportingPeriod', 'streamMetadata',
+            'reportingPeriod', 'streamMetadata', 'locationid'
         """
         return bind_api(
             api=self,
@@ -230,6 +230,7 @@ class API(object):
                 'samplePeriod',
                 'reportingPeriod',
                 'streamMetadata',
+                'locationid'
             ],
             require_auth=True,
         )
@@ -250,6 +251,27 @@ class API(object):
             payload_type='stream',
             allowed_param=[
                 'id',
+            ],
+            require_auth=True,
+        )
+
+    @property
+    def create_location(self):
+        """ :reference:
+        https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/put_location_id
+            :allowed_param: 'id', 'description', 'organisationid', 'geoJson'
+        """
+        return bind_api(
+            api=self,
+            path='/locations/{id}',
+            method='PUT',
+            payload_type='json',
+            action='create',
+            allowed_param=[
+                'id',
+                'organisationid',
+                'description',
+                'geoJson',
             ],
             require_auth=True,
         )
