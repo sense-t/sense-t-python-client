@@ -230,7 +230,6 @@ class API(object):
                 'samplePeriod',
                 'reportingPeriod',
                 'streamMetadata',
-                'locationid'
             ],
             require_auth=True,
         )

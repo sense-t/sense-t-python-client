@@ -435,6 +435,7 @@ class Stream(Model):
         self._organisations = list()
         self._groups = list()
         self._metadata = None
+        self._location = None
 
     def __getstate__(self, action=None):
         pickled = super(Stream, self).__getstate__(action)
@@ -444,7 +445,6 @@ class Stream(Model):
 
         if self.groups:
             pickled["groupids"] = [g.id for g in self.groups]
-
 
         try:
             if self.location:
@@ -517,12 +517,12 @@ class Stream(Model):
         self._groups = value
 
     @property
-    def locationid(self):
-        return self._locationid
+    def location(self):
+        return self._location
 
-    @locationid.setter
-    def locationid(self, value):
-        self._locationid = value
+    @location.setter
+    def location(self, value):
+        self._location = value
 
     @property
     def metadata(self):
