@@ -271,6 +271,7 @@ class API(object):
                 'organisationid',
                 'description',
                 'geoJson',
+                'groupids',
             ],
             require_auth=True,
         )
