@@ -341,3 +341,63 @@ class API(object):
             ],
             require_auth=True,
         )
+
+    @property
+    def create_group(self):
+        """ :reference:
+        https://sensor-cloud.io/api-docs/#!/default/put_groups_id
+            :allowed_param: 'id', 'name', 'organisationid', 'description', 'groupids'
+        """
+        return bind_api(
+            api=self,
+            path='/groups/{id}',
+            method='PUT',
+            payload_type='json',
+            action='create',
+            allowed_param=[
+                'id',
+                'name',
+                'organisationid',
+                'description',
+                'groupids',
+            ],
+            require_auth=True,
+        )
+
+    @property
+    def get_groups(self):
+        """ :reference: https://sensor-cloud.io/api-docs/#!/default/get_groups
+            :allowed_param: 'id', 'organisationid', 'groupids', 'limit', 'skip', 'expand', 'recursive'
+        """
+        return bind_api(
+            api=self,
+            path='/groups',
+            method='GET',
+            payload_type='json',
+            allowed_param=[
+            ],
+            query_only_param=[
+                'id',
+                'organisationid',
+                'groupids',
+                'limit',
+                'skip',
+                'expand',
+                'recursive'
+            ],
+            require_auth=True,
+        )
+
+    @property
+    def get_group(self):
+        """ :reference: https://sensor-cloud.io/api-docs/#!/default/get_group
+            :allowed_param: 'id', 'recursive'
+        """
+        return bind_api(
+            api=self,
+            path='/groups/{id}',
+            method='GET',
+            payload_type='json',
+            allowed_param=['id', 'recursive'],
+            require_auth=True,
+        )
