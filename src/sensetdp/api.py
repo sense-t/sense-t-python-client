@@ -277,6 +277,20 @@ class API(object):
         )
 
     @property
+    def get_location(self):
+        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/get_location_id
+            :allowed_param: 'id'
+        """
+        return bind_api(
+            api=self,
+            path='/locations/{id}',
+            method='GET',
+            payload_type='location',
+            allowed_param=['id'],
+            require_auth=True,
+        )
+
+    @property
     def create_observations(self):
         """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/post_observations
             :allowed_param: 'streamid', 'results'
@@ -401,3 +415,5 @@ class API(object):
             allowed_param=['id', 'recursive'],
             require_auth=True,
         )
+
+    
