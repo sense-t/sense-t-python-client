@@ -172,15 +172,16 @@ class API(object):
 
     @property
     def streams(self):
-        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/put_platforms_id
-            :allowed_param: 'limit'
+        """ :reference: https://data.sense-t.org.au/api-docs/#!/default/get_streams
+            :allowed_param: 'id,limit'
         """
         return bind_api(
             api=self,
             path='/streams',
             payload_type='stream',
-            allowed_param=['limit'],
+            allowed_param=['limit', 'id'],
             query_only_param=[
+                'id',
                 'limit',
                 'skip',
                 'resulttype',
