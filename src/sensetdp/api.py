@@ -404,6 +404,23 @@ class API(object):
         )
 
     @property
+    def destroy_group(self):
+        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/delete_group
+            :allowed_param: 'id', 'cascade'
+        """
+        return bind_api(
+            api=self,
+            path='/groups/{id}',
+            method='DELETE',
+            payload_type='group',
+            allowed_param=[
+                'id',
+		'cascade'
+            ],
+            require_auth=True,
+        )
+
+    @property
     def get_group(self):
         """ :reference: https://sensor-cloud.io/api-docs/#!/default/get_group
             :allowed_param: 'id', 'recursive'
