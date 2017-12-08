@@ -601,16 +601,15 @@ class Observation(Model):
     
     @classmethod
     def from_dataframe(cls, dataframe):
-		result = {}
-		
-		for timestamp, series in dataframe.iterrows():
-			timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-			
-			for series_id, value in series.iteritems():
-				observation = UnivariateResult(t=timestamp, v=value)
-				result.setdefault(series_id, Observation()).results.append(observation)
-		
-		return result
+        result = {}
+         
+        for timestamp, series in dataframe.iterrows():
+            timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+            
+            for series_id, value in series.iteritems():
+                observation = UnivariateResult(t=timestamp, v=value)
+                result.setdefault(series_id, Observation()).results.append(observation)
+        return result
 
     @property
     def results(self):

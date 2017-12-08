@@ -172,15 +172,16 @@ class API(object):
 
     @property
     def streams(self):
-        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/put_platforms_id
-            :allowed_param: 'limit'
+        """ :reference: https://data.sense-t.org.au/api-docs/#!/default/get_streams
+            :allowed_param: 'id,limit'
         """
         return bind_api(
             api=self,
             path='/streams',
             payload_type='stream',
-            allowed_param=['limit'],
+            allowed_param=['limit', 'id'],
             query_only_param=[
+                'id',
                 'limit',
                 'skip',
                 'resulttype',
@@ -280,6 +281,20 @@ class API(object):
         )
 
     @property
+    def get_location(self):
+        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/get_location_id
+            :allowed_param: 'id'
+        """
+        return bind_api(
+            api=self,
+            path='/locations/{id}',
+            method='GET',
+            payload_type='location',
+            allowed_param=['id'],
+            require_auth=True,
+        )
+
+    @property
     def create_observations(self):
         """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/post_observations
             :allowed_param: 'streamid', 'results'
@@ -344,3 +359,82 @@ class API(object):
             ],
             require_auth=True,
         )
+
+    @property
+    def create_group(self):
+        """ :reference:
+        https://sensor-cloud.io/api-docs/#!/default/put_groups_id
+            :allowed_param: 'id', 'name', 'organisationid', 'description', 'groupids'
+        """
+        return bind_api(
+            api=self,
+            path='/groups/{id}',
+            method='PUT',
+            payload_type='json',
+            action='create',
+            allowed_param=[
+                'id',
+                'name',
+                'organisationid',
+                'description',
+                'groupids',
+            ],
+            require_auth=True,
+        )
+
+    @property
+    def get_groups(self):
+        """ :reference: https://sensor-cloud.io/api-docs/#!/default/get_groups
+            :allowed_param: 'id', 'organisationid', 'groupids', 'limit', 'skip', 'expand', 'recursive'
+        """
+        return bind_api(
+            api=self,
+            path='/groups',
+            method='GET',
+            payload_type='json',
+            allowed_param=[
+            ],
+            query_only_param=[
+                'id',
+                'organisationid',
+                'groupids',
+                'limit',
+                'skip',
+                'expand',
+                'recursive'
+            ],
+            require_auth=True,
+        )
+
+    @property
+    def destroy_group(self):
+        """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/delete_group
+            :allowed_param: 'id', 'cascade'
+        """
+        return bind_api(
+            api=self,
+            path='/groups/{id}',
+            method='DELETE',
+            payload_type='group',
+            allowed_param=[
+                'id',
+		'cascade'
+            ],
+            require_auth=True,
+        )
+
+    @property
+    def get_group(self):
+        """ :reference: https://sensor-cloud.io/api-docs/#!/default/get_group
+            :allowed_param: 'id', 'recursive'
+        """
+        return bind_api(
+            api=self,
+            path='/groups/{id}',
+            method='GET',
+            payload_type='json',
+            allowed_param=['id', 'recursive'],
+            require_auth=True,
+        )
+
+    
