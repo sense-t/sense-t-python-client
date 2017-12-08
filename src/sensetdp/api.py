@@ -241,7 +241,7 @@ class API(object):
     @property
     def destroy_stream(self):
         """ :reference: https://data.sense-t.org.au/api/sensor/v2/api-docs/#!/default/delete_streams_id
-            :allowed_param: 'id'
+            :allowed_param: 'id', 'cascade'
         """
         return bind_api(
             api=self,
@@ -250,6 +250,9 @@ class API(object):
             payload_type='stream',
             allowed_param=[
                 'id',
+            ],
+            query_only_param=[
+                'cascade',
             ],
             require_auth=True,
         )
