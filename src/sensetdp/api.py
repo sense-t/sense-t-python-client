@@ -190,6 +190,8 @@ class API(object):
                 'groupids',
                 'organisationid',
                 'locationid',
+                'usermetadatafield',
+                'usermetadatavalues'
             ],
             payload_list=True,
             require_auth=True,
@@ -401,7 +403,9 @@ class API(object):
                 'limit',
                 'skip',
                 'expand',
-                'recursive'
+                'recursive',
+                'usermetadatafield',
+                'usermetadatavalues'
             ],
             require_auth=True,
         )
