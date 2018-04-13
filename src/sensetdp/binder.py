@@ -66,6 +66,7 @@ def bind_api(**config):
         def __init__(self, args, kwargs):
             api = self.api
             self.api_root = api.api_root
+            self.session.verify = api.verify
 
             # If authentication is required and no credentials
             # are provided, throw an error.

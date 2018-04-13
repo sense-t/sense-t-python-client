@@ -35,7 +35,7 @@ class API(object):
                  host='data.sense-t.org.au', cache=None, api_root='/api/sensor/v2',
                  retry_count=0, retry_delay=0, retry_errors=None, timeout=60, parser=None,
                  compression=False, wait_on_rate_limit=False,
-                 wait_on_rate_limit_notify=False, proxy=''):
+                 wait_on_rate_limit_notify=False, proxy='', verify=True):
         """ Api instance Constructor
 
         :param auth_handler:
@@ -55,6 +55,7 @@ class API(object):
         :raise TypeError: If the given parser is not a ModelParser instance.
         """
         self.auth = auth_handler
+        self.verify = verify
         self.host = host
         self.api_root = api_root
         self.cache = cache
