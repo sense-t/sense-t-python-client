@@ -142,8 +142,6 @@ def bind_api(**config):
                     raise SenseTError('Multiple values for parameter %s supplied!' % k)
                 self.session.params[k] = convert_to_utf8_str(arg)
 
-            log.info("DATA PARAMS: %r", self.session.params)
-
         def build_query_params(self, kwargs):
             for param in self.query_only_param:
                 try:
