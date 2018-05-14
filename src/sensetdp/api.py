@@ -185,6 +185,8 @@ class API(object):
                 'id',
                 'limit',
                 'skip',
+                'near',
+                'radius',
                 'resulttype',
                 'expand',
                 'recursive',
