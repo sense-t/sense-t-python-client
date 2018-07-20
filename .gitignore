@@ -5,3 +5,9 @@ dist/
 *.pyc
 *.pyo
 *.egg-info
+
+venv/*
+
+# IDEA Specific
+.idea/*
+*.iml

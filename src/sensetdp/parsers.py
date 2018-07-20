@@ -24,11 +24,17 @@ THE SOFTWARE.
 
 from __future__ import print_function, unicode_literals, absolute_import
 
+import six
+
 from sensetdp.models import ModelFactory
 from sensetdp.utils import import_simplejson
 from sensetdp.error import SenseTError
 
-from cStringIO import StringIO
+
+if six.PY2:
+    from cStringIO import StringIO
+else:
+    from io import StringIO as StringIO
 
 class Parser(object):
 
@@ -134,7 +140,7 @@ class PandasObservationParser(Parser):
         self.json_lib = import_simplejson()
     
     def parse(self, method, payload):
-		# Validate media type.
+        # Validate media type.
         media_type = method.query_params.get('media', None)
         if media_type != 'csv':
             raise SenseTError('PandasObservationParser requires CSV media type (media type "{}" is not supported).'.format(media_type))
